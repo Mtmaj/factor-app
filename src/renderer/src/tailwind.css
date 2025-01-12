@@ -1,0 +1,360 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html,
+body {
+  width: 100%;
+  height: 100%;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+}
+
+#root {
+  width: 100%;
+  height: 100%;
+}
+
+@font-face {
+  font-family: Poppins;
+  font-style: normal;
+  font-weight: normal;
+  src:
+    /* IE6-8 */ url('./assets/fonts/poppins/Poppins-Regular.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: Poppins;
+  font-style: normal;
+  font-weight: bold;
+  src:
+    /* IE6-8 */ url('./assets/fonts/poppins/Poppins-Bold.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: Poppins;
+  font-style: normal;
+  font-weight: 500;
+  src:
+    /* IE6-8 */ url('./assets/fonts/poppins/Poppins-Medium.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: Shabnam;
+  src: url('./assets/fonts/shabnam/Shabnam.woff2') format('woff2');
+  font-weight: normal;
+  ascent-override: 100%;
+}
+
+@font-face {
+  font-family: Shabnam;
+  src: url('./assets/fonts/shabnam/Shabnam-Bold.woff2') format('woff2');
+  font-weight: bold;
+  ascent-override: 100%;
+}
+
+@font-face {
+  font-family: Shabnam;
+  src: url('./assets/fonts/shabnam/Shabnam-Thin.woff2') format('woff2');
+  font-weight: 100;
+  ascent-override: 100%;
+}
+
+@font-face {
+  font-family: Shabnam;
+  src: url('./assets/fonts/shabnam/Shabnam-Light.woff2') format('woff2');
+  font-weight: 300;
+  ascent-override: 100%;
+}
+
+@font-face {
+  font-family: Shabnam;
+  src: url('./assets/fonts/shabnam/Shabnam-Medium.woff2') format('woff2');
+  font-weight: 500;
+  ascent-override: 100%;
+}
+
+@font-face {
+  font-family: ActionJackson;
+  src: url('./assets/fonts/ActionJackson.ttf') format('truetype');
+}
+@font-face {
+  font-family: AgetaChubby;
+  src: url('./assets/fonts/AgetaChubby.otf') format('truetype');
+}
+@font-face {
+  font-family: Alba;
+  src: url('./assets/fonts/Alba.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: Nunito;
+  src: url('./assets/fonts/nunito/Nunito-Regular.ttf') format('truetype');
+  font-weight: normal;
+}
+@font-face {
+  font-family: Nunito;
+  src: url('./assets/fonts/nunito/Nunito-Bold.ttf') format('truetype');
+  font-weight: bold;
+}
+@font-face {
+  font-family: Nunito;
+  src: url('./assets/fonts/nunito/Nunito-ExtraBold.ttf') format('truetype');
+  font-weight: bolder;
+}
+@font-face {
+  font-family: Nunito;
+  src: url('./assets/fonts/nunito/Nunito-Black.ttf') format('truetype');
+  font-weight: 900;
+}
+
+*,
+*::after,
+*::before {
+  font-family: Shabnam !important;
+}
+.ActionJacksonFamily {
+  font-family: ActionJackson !important;
+}
+.AgetaChubby {
+  font-family: AgetaChubby !important;
+}
+.Alba {
+  font-family: Alba !important;
+}
+.Nunito {
+  font-family: Nunito !important;
+}
+
+.App {
+  height: 100%;
+  width: 100%;
+}
+
+.App[dir='ltr'] {
+  font-family: Poppins !important;
+}
+
+.App[dir='rtl'] {
+  font-family: Shabnam !important;
+}
+
+@media (max-width: 768px) {
+  .App {
+    font-size: 0.8rem;
+    overflow-x: hidden;
+  }
+}
+
+.click-pass-through {
+  pointer-events: none !important;
+}
+
+.click-pass-through > * {
+  pointer-events: all;
+}
+
+.printingBody {
+  padding: 5em;
+}
+
+.printingBody * {
+  direction: rtl;
+}
+
+.disabled {
+  opacity: 0.6;
+  filter: grayscale(1);
+  pointer-events: none;
+}
+
+@page {
+  margin: 10mm;
+}
+
+[dir='rtl'] ol {
+  list-style: persian;
+}
+
+.contents {
+  display: contents;
+}
+
+.shimmer {
+  -webkit-mask: linear-gradient(-60deg, #fff 30%, #fff5, #fff 70%) right/300% 100%;
+  mask: linear-gradient(-60deg, #fff 30%, #fff5, #fff 70%) right/300% 100%;
+  background-repeat: no-repeat;
+  animation: shimmer 2.5s infinite;
+}
+
+.HiddenScroll {
+  overflow: scroll;
+  -webkit-overflow-scrolling: touch;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.HiddenScroll::-webkit-scrollbar {
+  display: none;
+}
+
+@keyframes shimmer {
+  100% {
+    -webkit-mask-position: left;
+    mask-position: left;
+  }
+}
+
+.wave_ {
+  text-decoration: wavy;
+  text-decoration-color: var(--underline-color);
+  text-decoration-line: underline;
+  text-underline-offset: 0px;
+  text-underline-position: from-font;
+}
+.glow-text {
+  /* font-size: 48px; */
+  font-weight: bold;
+  /* color: black; */
+  animation: glow-animation 1s infinite alternate;
+}
+
+@keyframes glow-animation {
+  0% {
+    text-shadow:
+      0 0 5px #ffff00,
+      0 0 5px #ff0000,
+      0 0 15px #ff6200,
+      0 0 20px #ff0000;
+  }
+
+  50% {
+    text-shadow:
+      0 0 10px #ffff00,
+      0 0 10px #ff0000,
+      0 0 30px #ff6200,
+      0 0 40px #ff0000;
+  }
+
+  100% {
+    text-shadow:
+      0 0 5px #ffff00,
+      0 0 5px #ff0000,
+      0 0 15px #ff6200,
+      0 0 20px #ff0000;
+  }
+}
+
+.text-en {
+  font-family: Poppins !important;
+}
+
+.plyr {
+  border-radius: 15px;
+  --plyr-color-main: #00a08c;
+  --plyr-audio-controls-background: white;
+}
+
+html:is([data-theme='dark']) {
+  .plyr {
+    --plyr-audio-controls-background: black;
+  }
+}
+
+.bounce {
+  animation: var(--animation-bounce) forwards;
+  animation-timing-function: var(--ease-elastic-in-out-1);
+  animation-duration: 2s;
+}
+
+.blink {
+  animation: var(--animation-blink) forwards;
+  animation-timing-function: var(--ease-elastic-in-out-1);
+  animation-duration: 2s;
+}
+
+.float {
+  animation: var(--animation-float) forwards;
+  animation-duration: 2s;
+}
+
+.float-target:hover .float-hover {
+  animation: var(--animation-float) forwards;
+  animation-duration: 2s;
+}
+
+.shakeX {
+  animation: var(--animation-shake-x);
+}
+
+.scale-up {
+  animation: var(--animation-scale-up) forwards;
+}
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 0 0% 3.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 3.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 3.9%;
+    --primary: 0 0% 9%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 0 0% 96.1%;
+    --secondary-foreground: 0 0% 9%;
+    --muted: 0 0% 96.1%;
+    --muted-foreground: 0 0% 45.1%;
+    --accent: 0 0% 96.1%;
+    --accent-foreground: 0 0% 9%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 89.8%;
+    --input: 0 0% 89.8%;
+    --ring: 0 0% 3.9%;
+    --chart-1: 12 76% 61%;
+    --chart-2: 173 58% 39%;
+    --chart-3: 197 37% 24%;
+    --chart-4: 43 74% 66%;
+    --chart-5: 27 87% 67%;
+    --radius: 0.5rem;
+  }
+  .dark {
+    --background: 0 0% 3.9%;
+    --foreground: 0 0% 98%;
+    --card: 0 0% 3.9%;
+    --card-foreground: 0 0% 98%;
+    --popover: 0 0% 3.9%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 0 0% 98%;
+    --primary-foreground: 0 0% 9%;
+    --secondary: 0 0% 14.9%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 0 0% 14.9%;
+    --muted-foreground: 0 0% 63.9%;
+    --accent: 0 0% 14.9%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 14.9%;
+    --input: 0 0% 14.9%;
+    --ring: 0 0% 83.1%;
+    --chart-1: 220 70% 50%;
+    --chart-2: 160 60% 45%;
+    --chart-3: 30 80% 55%;
+    --chart-4: 280 65% 60%;
+    --chart-5: 340 75% 55%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
