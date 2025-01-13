@@ -1,4 +1,4 @@
-import { BrowserRouter, Route, Routes } from 'react-router'
+import {  Route, Routes,HashRouter } from 'react-router'
 import './tailwind.css'
 import Dashboard from './Components/layout/dashboard'
 import FactorPage from './pages/factors'
@@ -11,7 +11,7 @@ function App() {
   return (
     <>
       <div className="w-full h-full">
-        <BrowserRouter>
+        <HashRouter>
           <div className="w-full flex flex-col h-full">
             <Dashboard>
               <Routes>
@@ -24,7 +24,7 @@ function App() {
               </Routes>
             </Dashboard>
           </div>
-        </BrowserRouter>
+        </HashRouter>
       </div>
     </>
   )
