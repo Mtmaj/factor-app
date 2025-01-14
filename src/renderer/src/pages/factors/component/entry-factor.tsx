@@ -49,14 +49,14 @@ export function EntryFactor({
     date: z.string({ required_error: "تاریخ الزامی است" }),
     type_doc: z.string({ required_error: "نوع سند اجباری است" }),
     from: z.string().optional().nullable(),
-    weight: z.number({
+    weight: z.string({
       required_error: "وزن اجباری است",
       invalid_type_error: "لطفا عدد وارد کنید",
-    }),
-    weight_with_plastic: z.number({
+    }).refine((value)=>Number(value) || value == "0" || (value.split("").filter(val=>val == ".").length == 1), "لطفا عدد وارد نمایید"),
+    weight_with_plastic: z.string({
       required_error: "وزن با پلاستیک اجباری است",
       invalid_type_error: "لطفا عدد وارد کنید",
-    }),
+    }).refine((value)=>Number(value) || value == "0" || (value.split("").filter(val=>val == ".").length == 1), "لطفا عدد وارد نمایید"),
     quote: z.number({
       required_error: "وزن اجباری است",
       invalid_type_error: "لطفا عدد وارد کنید",
@@ -331,13 +331,10 @@ export function EntryFactor({
                   <FormItem className="w-full flex flex-col items-start gap-y-[3px]">
                     <span>وزن (گرم)</span>
                     <Input
-                      value={field.value ?? ""}
+                      value={field.value}
                       onChange={(e) => {
-                        if (e.currentTarget.value == "") {
-                          field.onChange(null);
-                        } else {
-                          field.onChange(Number(e.currentTarget.value));
-                        }
+                 
+                          field.onChange(e.currentTarget.value);
                       }}
                     />
                     <FormMessage />
@@ -353,14 +350,11 @@ export function EntryFactor({
                   <FormItem className="w-full flex flex-col items-start gap-y-[3px]">
                     <span>وزن با پلاستیک (گرم)</span>
                     <Input
-                      value={field.value ?? ""}
+                      value={field.value}
                       onChange={(e) => {
-                        if (e.currentTarget.value == "") {
-                          field.onChange(null);
-                        } else {
-                          field.onChange(Number(e.currentTarget.value));
-                        }
-                      }}
+                 
+                        field.onChange(e.currentTarget.value);
+                    }}
                     />
                     <FormMessage />
                   </FormItem>

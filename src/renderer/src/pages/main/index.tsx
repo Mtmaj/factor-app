@@ -92,7 +92,7 @@ export default function HomePage() {
                       jalaaliMoment(item.date).isAfter(jalaaliMoment().format('YYYY-MM-01')) &&
                       jalaaliMoment(item.date).isBefore(jalaaliMoment().format('YYYY-MM-31'))
                   )
-                  .map((item) => Math.ceil(item.quote / 4.6083) * item.weight)
+                  .map((item) => Math.ceil(item.quote / 4.6083) * Number(item.weight))
               )
             )
           )}

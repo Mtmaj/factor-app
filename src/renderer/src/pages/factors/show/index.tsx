@@ -209,7 +209,7 @@ export default function ShowFactorPage() {
                 </td>
                 <td className="border text-center">
                   {digitsEnToFa(
-                    Intl.NumberFormat().format(Math.ceil(factor.quote / 4.6083) * factor.weight)
+                    Intl.NumberFormat().format(Math.ceil(factor.quote / 4.6083) * Number(factor.weight))
                   )}{' '}
                   تومان
                 </td>
@@ -223,10 +223,10 @@ export default function ShowFactorPage() {
                   مثقال : {digitsEnToFa(Intl.NumberFormat().format(factor.quote))} تومان
                 </td>
                 <td className="border p-2">
-                  جمع وزن : {digitsEnToFa(Intl.NumberFormat().format(factor.weight))} گرم
+                  جمع وزن : {digitsEnToFa(Intl.NumberFormat().format(Number(factor.weight)))} گرم
                 </td>
                 <td className="border p-2">
-                  جمع سند : {digitsEnToFa(Intl.NumberFormat().format(factor.weight))} گرم
+                  جمع سند : {digitsEnToFa(Intl.NumberFormat().format(Number(factor.weight)))} گرم
                 </td>
               </tr>
               <tr className="w-full">
@@ -236,12 +236,12 @@ export default function ShowFactorPage() {
                 </td>
                 <td className="border p-2">
                   وزن با پلاستیک :{' '}
-                  {digitsEnToFa(Intl.NumberFormat().format(factor.weight_with_plastic))} گرم
+                  {digitsEnToFa(Intl.NumberFormat().format(Number(factor.weight_with_plastic)))} گرم
                 </td>
                 <td className="border p-2">
                   جمع مبلغ :
                   {digitsEnToFa(
-                    Intl.NumberFormat().format(Math.ceil(factor.quote / 4.6083) * factor.weight)
+                    Intl.NumberFormat().format(Math.ceil(factor.quote / 4.6083) * Number(factor.weight))
                   )}{' '}
                   تومان
                 </td>

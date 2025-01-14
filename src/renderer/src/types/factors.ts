@@ -4,8 +4,8 @@ export interface Factor {
   date: string;
   type_doc: string;
   from?: string;
-  weight: number;
-  weight_with_plastic: number;
+  weight: string;
+  weight_with_plastic: string;
   quote: number;
   created_date: string;
   is_deleted: boolean;

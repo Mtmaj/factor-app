@@ -229,7 +229,7 @@ export const FactorPDF = ({ factor, customer }: { factor: Factor; customer: Cust
                 ></View>
                 <Text>
                   {digitsEnToFa(
-                    Intl.NumberFormat().format(Math.ceil(factor.quote / 4.6083) * factor.weight)
+                    Intl.NumberFormat().format(Math.ceil(factor.quote / 4.6083) * Number(factor.weight))
                   )}{' '}
                   تومان
                 </Text>
@@ -418,7 +418,7 @@ export const FactorPDF = ({ factor, customer }: { factor: Factor; customer: Cust
                   padding: '2px'
                 }}
               >
-                <Text>جمع سند: {digitsEnToFa(Intl.NumberFormat().format(factor.weight))} گرم</Text>
+                <Text>جمع سند: {digitsEnToFa(Intl.NumberFormat().format(Number(factor.weight)))} گرم</Text>
               </View>
               <View
                 style={{
@@ -432,7 +432,7 @@ export const FactorPDF = ({ factor, customer }: { factor: Factor; customer: Cust
                 <Text>
                   جمع مبلغ:{' '}
                   {digitsEnToFa(
-                    Intl.NumberFormat().format(Math.ceil(factor.quote / 4.6083) * factor.weight)
+                    Intl.NumberFormat().format(Math.ceil(factor.quote / 4.6083) *Number(factor.weight))
                   )}{' '}
                   تومان
                 </Text>
@@ -458,7 +458,7 @@ export const FactorPDF = ({ factor, customer }: { factor: Factor; customer: Cust
                   padding: '2px'
                 }}
               >
-                <Text>جمع وزن: {digitsEnToFa(Intl.NumberFormat().format(factor.weight))} گرم</Text>
+                <Text>جمع وزن: {digitsEnToFa(Intl.NumberFormat().format(Number(factor.weight)))} گرم</Text>
               </View>
               <View
                 style={{
@@ -471,7 +471,7 @@ export const FactorPDF = ({ factor, customer }: { factor: Factor; customer: Cust
               >
                 <Text>
                   وزن با پلاستیک:{' '}
-                  {digitsEnToFa(Intl.NumberFormat().format(factor.weight_with_plastic))} گرم
+                  {digitsEnToFa(Intl.NumberFormat().format(Number(factor.weight_with_plastic)))} گرم
                 </Text>
               </View>
             </View>
