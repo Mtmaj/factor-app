@@ -173,7 +173,7 @@ export default function ShowFactorPage() {
             <td className="w-full flex flex-row justify-between p-[30px] border">
               <div className="flex flex-col items-start gap-y-[20px]">
                 <span>صورت حساب : {customer.full_name ?? 'ندارد'}</span>
-                <span>شماره سند : {digitsEnToFa(factor.id) ?? 'ندارد'}</span>
+                <span>شماره سند : {digitsEnToFa(factor.document_id) ?? 'ندارد'}</span>
               </div>
               <div className="flex flex-col items-start gap-y-[20px]">
                 <span>شهر : {customer.city ?? 'ندارد'}</span>

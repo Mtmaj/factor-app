@@ -9,6 +9,7 @@ export interface Factor {
   quote: number;
   created_date: string;
   is_deleted: boolean;
+  document_id:string;
 }
 
 export interface Customer {

@@ -61,6 +61,9 @@ export function EntryFactor({
       required_error: "وزن اجباری است",
       invalid_type_error: "لطفا عدد وارد کنید",
     }),
+    document_id: z.string({
+      required_error: "شماره سند اجباری است",
+    }).min(1,"شماره سند اجباری است"),
   });
   const factorForm = useForm<z.infer<typeof factorSchema>>({
     resolver: zodResolver(factorSchema),
@@ -252,6 +255,28 @@ export function EntryFactor({
           )}
           <h1 className="text-2xl font-bold">اطلاعات محصول</h1>
           <div className="grid md:grid-cols-3 grid-cols-1 gap-[30px] w-full">
+          <FormField
+              name="document_id"
+              control={factorForm.control}
+              render={({ field }) => (
+                <FormControl>
+                  <FormItem className="w-full flex flex-col items-start gap-y-[3px]">
+                    <span>شماره سند</span>
+                    <Input
+                      value={field.value ?? ""}
+                      onChange={(e) => {
+                        if (e.currentTarget.value == "") {
+                          field.onChange(null);
+                        } else {
+                          field.onChange(e.currentTarget.value);
+                        }
+                      }}
+                    />
+                    <FormMessage />
+                  </FormItem>
+                </FormControl>
+              )}
+            />
             <FormField
               name="date"
               control={factorForm.control}

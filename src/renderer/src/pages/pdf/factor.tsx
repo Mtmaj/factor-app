@@ -32,7 +32,7 @@ const styles = StyleSheet.create({
   page: {
     flexDirection: 'column',
     height: '100%',
-    fontSize: '8px',
+    fontSize: '6px',
     fontFamily: 'IRANSans'
   }
 })
@@ -184,7 +184,7 @@ export const FactorPDF = ({ factor, customer }: { factor: Factor; customer: Cust
               }}
             >
               <Text>صورت حساب: {customer.full_name ?? 'ندارد'}</Text>
-              <Text>شماره سند: {factor.id ? digitsEnToFa(factor.id) : 'ندارد'}</Text>
+              <Text>شماره سند: {factor.id ? digitsEnToFa(factor.document_id) : 'ندارد'}</Text>
             </View>
           </View>
           <View
@@ -212,7 +212,7 @@ export const FactorPDF = ({ factor, customer }: { factor: Factor; customer: Cust
                   display: 'flex',
                   flexDirection: 'column',
                   rowGap: '5px',
-                  flex: '2',
+                  flex: '3',
                   padding: '5px 0px',
                   alignItems: 'center',
                   width: '100%',
@@ -227,12 +227,26 @@ export const FactorPDF = ({ factor, customer }: { factor: Factor; customer: Cust
                     backgroundColor: 'black'
                   }}
                 ></View>
-                <Text>
+              <View style={{display:"flex",flexDirection:"row",columnGap:"1px"}} >
+                  
+                  
+                  <Text >
+                  
+                  تومان
+                  
+                  
+                </Text>
+                {" "}
+                  <Text >
+                  
                   {digitsEnToFa(
                     Intl.NumberFormat().format(Math.ceil(factor.quote / 4.6083) * Number(factor.weight))
-                  )}{' '}
-                  تومان
+                  )}
+                  
+                  
                 </Text>
+                
+                </View>
                 <View
                   style={{
                     width: '100%',
@@ -261,9 +275,24 @@ export const FactorPDF = ({ factor, customer }: { factor: Factor; customer: Cust
                     backgroundColor: 'black'
                   }}
                 ></View>
-                <Text>
-                  {digitsEnToFa(Intl.NumberFormat().format(Math.ceil(factor.quote / 4.6083)))} تومان
+                <View style={{display:"flex",flexDirection:"row",columnGap:"1px"}} >
+                  
+                  
+                  <Text >
+                  
+                  تومان
+                  
+                  
                 </Text>
+                {" "}
+                  <Text >
+                  
+                  {digitsEnToFa(Intl.NumberFormat().format(Math.ceil(factor.quote / 4.6083)))}
+                  
+                  
+                </Text>
+                
+                </View>
                 <View
                   style={{
                     width: '100%',
@@ -321,7 +350,24 @@ export const FactorPDF = ({ factor, customer }: { factor: Factor; customer: Cust
                     backgroundColor: 'black'
                   }}
                 ></View>
-                <Text> {digitsEnToFa(factor.weight)} گرم</Text>
+                <View style={{display:"flex",flexDirection:"row",columnGap:"1px"}} >
+                  
+                  
+                  <Text >
+                  
+                  گرم
+                  
+                  
+                </Text>
+                {" "}
+                  <Text >
+                  
+                  {digitsEnToFa(factor.weight)}
+                  
+                  
+                </Text>
+                
+                </View>
                 <View
                   style={{
                     width: '100%',
