@@ -174,6 +174,10 @@ export default function ShowFactorPage() {
               <div className="flex flex-col items-start gap-y-[20px]">
                 <span>صورت حساب : {customer.full_name ?? 'ندارد'}</span>
                 <span>شماره سند : {digitsEnToFa(factor.document_id) ?? 'ندارد'}</span>
+                <span>
+                  شماره سریال :{' '}
+                  {factor.serial_number ? digitsEnToFa(factor.serial_number) : 'ندارد'}
+                </span>
               </div>
               <div className="flex flex-col items-start gap-y-[20px]">
                 <span>شهر : {customer.city ?? 'ندارد'}</span>
@@ -209,7 +213,9 @@ export default function ShowFactorPage() {
                 </td>
                 <td className="border text-center">
                   {digitsEnToFa(
-                    Intl.NumberFormat().format(Math.ceil(factor.quote / 4.6083) * Number(factor.weight))
+                    Intl.NumberFormat().format(
+                      Math.ceil(factor.quote / 4.6083) * Number(factor.weight)
+                    )
                   )}{' '}
                   تومان
                 </td>
@@ -241,7 +247,9 @@ export default function ShowFactorPage() {
                 <td className="border p-2">
                   جمع مبلغ :
                   {digitsEnToFa(
-                    Intl.NumberFormat().format(Math.ceil(factor.quote / 4.6083) * Number(factor.weight))
+                    Intl.NumberFormat().format(
+                      Math.ceil(factor.quote / 4.6083) * Number(factor.weight)
+                    )
                   )}{' '}
                   تومان
                 </td>

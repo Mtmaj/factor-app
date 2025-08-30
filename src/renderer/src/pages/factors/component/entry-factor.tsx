@@ -1,99 +1,110 @@
-import { Customer, Factor } from "@/types/factors";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import {
-  FormControl,
-  FormField,
-  FormItem,
-  FormMessage,
-  Form,
-} from "@/Components/Ui/form";
-import { Button } from "@/Components/Ui/button";
-import { Dialog, DialogTrigger, DialogContent } from "@/Components/Ui/dialog";
-import { EntryCustomer } from "@/pages/customers/components/entry-customer";
-import { useCustomers } from "@/hooks/useCustomer";
-import { useEffect, useState } from "react";
-import { Combobox } from "@/Components/Ui/combo-box";
-import { Edit2, Plus, X } from "lucide-react";
-import { ShowCustomer } from "@/pages/customers/components/show-customer";
-import { Input } from "@/Components/Ui/input";
-import { DatePickerDemo } from "@/Components/Ui/date-picker-jalali";
-import jalaaliMoment from "@/utils/date";
+import { Customer, Factor } from '@/types/factors'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { z } from 'zod'
+import { FormControl, FormField, FormItem, FormMessage, Form } from '@/Components/Ui/form'
+import { Button } from '@/Components/Ui/button'
+import { Dialog, DialogTrigger, DialogContent } from '@/Components/Ui/dialog'
+import { EntryCustomer } from '@/pages/customers/components/entry-customer'
+import { useCustomers } from '@/hooks/useCustomer'
+import { useEffect, useState } from 'react'
+import { Combobox } from '@/Components/Ui/combo-box'
+import { Edit2, Plus, X } from 'lucide-react'
+import { ShowCustomer } from '@/pages/customers/components/show-customer'
+import { Input } from '@/Components/Ui/input'
+import { DatePickerDemo } from '@/Components/Ui/date-picker-jalali'
+import jalaaliMoment from '@/utils/date'
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
-} from "@/Components/Ui/select";
-import { type_docs } from "@/constant/factor";
-import { useNavigate } from "react-router";
-import { useCreateFactor, useUpdateFactor } from "@/hooks/useFactor";
-import { Checkbox } from "@/Components/Ui/checkbox";
+  SelectValue
+} from '@/Components/Ui/select'
+import { type_docs } from '@/constant/factor'
+import { useNavigate } from 'react-router'
+import { useCreateFactor, useUpdateFactor } from '@/hooks/useFactor'
+import { Checkbox } from '@/Components/Ui/checkbox'
+import { digitsEnToFa } from '@persian-tools/persian-tools'
 export function EntryFactor({
   id,
-  factorDefaultValue,
+  factorDefaultValue
 }: {
-  id?: string;
-  factorDefaultValue?: Factor;
+  id?: string
+  factorDefaultValue?: Factor
 }) {
-  const [selectCustomer, setSelectCustomer] = useState(
-    factorDefaultValue ? true : false
-  );
-  const [handleSubmitCustomer, setHandleSubmitCustomer] = useState<
-    (val: any) => void
-  >(() => {});
+  const [selectCustomer, setSelectCustomer] = useState(factorDefaultValue ? true : false)
+  const [handleSubmitCustomer, setHandleSubmitCustomer] = useState<(val: any) => void>(() => {})
   const factorSchema = z.object({
-    customer_id: z.string({ required_error: "شناسه کاربری الزامی است" }),
-    date: z.string({ required_error: "تاریخ الزامی است" }),
-    type_doc: z.string({ required_error: "نوع سند اجباری است" }),
+    customer_id: z.string({ required_error: 'شناسه کاربری الزامی است' }),
+    date: z.string({ required_error: 'تاریخ الزامی است' }),
+    type_doc: z.string({ required_error: 'نوع سند اجباری است' }),
     from: z.string().optional().nullable(),
-    weight: z.string({
-      required_error: "وزن اجباری است",
-      invalid_type_error: "لطفا عدد وارد کنید",
-    }).refine((value)=>Number(value) || value == "0" || (value.split("").filter(val=>val == ".").length == 1), "لطفا عدد وارد نمایید"),
-    weight_with_plastic: z.string({
-      required_error: "وزن با پلاستیک اجباری است",
-      invalid_type_error: "لطفا عدد وارد کنید",
-    }).refine((value)=>Number(value) || value == "0" || (value.split("").filter(val=>val == ".").length == 1), "لطفا عدد وارد نمایید"),
+    weight: z
+      .string({
+        required_error: 'وزن اجباری است',
+        invalid_type_error: 'لطفا عدد وارد کنید'
+      })
+      .refine(
+        (value) =>
+          Number(value) || value == '0' || value.split('').filter((val) => val == '.').length == 1,
+        'لطفا عدد وارد نمایید'
+      ),
+    weight_with_plastic: z
+      .string({
+        required_error: 'وزن با پلاستیک اجباری است',
+        invalid_type_error: 'لطفا عدد وارد کنید'
+      })
+      .refine(
+        (value) =>
+          Number(value) || value == '0' || value.split('').filter((val) => val == '.').length == 1,
+        'لطفا عدد وارد نمایید'
+      ),
     quote: z.number({
-      required_error: "وزن اجباری است",
-      invalid_type_error: "لطفا عدد وارد کنید",
+      required_error: 'وزن اجباری است',
+      invalid_type_error: 'لطفا عدد وارد کنید'
     }),
-    document_id: z.string({
-      required_error: "شماره سند اجباری است",
-    }).min(1,"شماره سند اجباری است"),
-  });
+    document_id: z
+      .string({
+        required_error: 'شماره سند اجباری است'
+      })
+      .min(1, 'شماره سند اجباری است'),
+    serial_number: z
+      .string({
+        required_error: 'شماره سریال اجباری است'
+      })
+      .min(1, 'شماره سریال اجباری است')
+  })
   const factorForm = useForm<z.infer<typeof factorSchema>>({
     resolver: zodResolver(factorSchema),
     defaultValues: {
-      date: jalaaliMoment().format("YYYY-MM-DD"),
-      ...(factorDefaultValue ?? {}),
-    },
-  });
-  const navigate = useNavigate();
-  const { mutate: createFactor } = useCreateFactor();
-  const { mutate: updateFactor } = useUpdateFactor();
+      date: jalaaliMoment().format('YYYY-MM-DD'),
+      ...(factorDefaultValue ?? {})
+    }
+  })
+  const navigate = useNavigate()
+  const { mutate: createFactor } = useCreateFactor()
+  const { mutate: updateFactor } = useUpdateFactor()
   function onSubmit(data: z.infer<typeof factorSchema>) {
-    console.log("OK");
+    console.log('OK')
     if (id) {
-      updateFactor({ id: id, value: data });
+      updateFactor({ id: id, value: data })
     } else {
       createFactor({
-        value: { ...data },
-      });
+        value: { ...data }
+      })
     }
-    navigate(-1);
+    navigate(-1)
   }
-  const customer_id_ca = factorForm.watch("customer_id");
+  const customer_id_ca = factorForm.watch('customer_id')
   useEffect(() => {
-    console.log(factorForm.getValues("customer_id"));
-    if (factorForm.getValues("customer_id") && !selectCustomer) {
-      factorForm.handleSubmit(onSubmit)();
+    console.log(factorForm.getValues('customer_id'))
+    if (factorForm.getValues('customer_id') && !selectCustomer) {
+      factorForm.handleSubmit(onSubmit)()
     }
-  }, [customer_id_ca]);
-  console.log(factorForm.formState.errors);
+  }, [customer_id_ca])
+  console.log(factorForm.formState.errors)
+
   return (
     <div className="w-full flex flex-col items-start gap-y-[10px] ">
       <Form {...factorForm}>
@@ -116,19 +127,19 @@ export function EntryFactor({
               control={factorForm.control}
               render={function FieldComponent({ field }) {
                 const customers = useCustomers({
-                  filters: [],
-                });
+                  filters: []
+                })
                 const [data, setData] = useState<Customer | null>(
                   customers.find((i) => i.id == field.value) ?? null
-                );
-                const [updateEdit, setUpdateEdit] = useState(0);
+                )
+                const [updateEdit, setUpdateEdit] = useState(0)
                 useEffect(() => {
-                  setData(customers.find((i) => i.id == field.value) ?? null);
-                }, [updateEdit]);
-                const [editOpen, setEditOpen] = useState(false);
+                  setData(customers.find((i) => i.id == field.value) ?? null)
+                }, [updateEdit])
+                const [editOpen, setEditOpen] = useState(false)
                 useEffect(() => {
-                  field.onChange(data?.id);
-                }, [data]);
+                  field.onChange(data?.id)
+                }, [data])
                 return (
                   <FormControl>
                     <FormItem className="w-full flex flex-col ga-y-[2px]">
@@ -140,15 +151,12 @@ export function EntryFactor({
                           triggerKey="full_name"
                           placeholder="انتخاب مشتری"
                           setData={(val) => {
-                            setData(val as Customer);
+                            setData(val as Customer)
                           }}
                         />
                         <Dialog open={editOpen} onOpenChange={setEditOpen}>
                           <DialogTrigger asChild>
-                            <Button
-                              disabled={!Boolean(data)}
-                              className="rounded-full"
-                            >
+                            <Button disabled={!Boolean(data)} className="rounded-full">
                               ویرایش
                             </Button>
                           </DialogTrigger>
@@ -158,7 +166,7 @@ export function EntryFactor({
                               id={data?.id}
                               setIsOpen={setEditOpen}
                               setCustomerId={() => {
-                                setUpdateEdit(updateEdit + 1);
+                                setUpdateEdit(updateEdit + 1)
                               }}
                             />
                           </DialogContent>
@@ -240,22 +248,20 @@ export function EntryFactor({
                       <FormMessage />
                     </FormItem>
                   </FormControl>
-                );
+                )
               }}
             />
           )}
           {!selectCustomer && (
             <EntryCustomer
-              setCustomerId={(id) =>
-                factorForm.setValue("customer_id", id as string)
-              }
+              setCustomerId={(id) => factorForm.setValue('customer_id', id as string)}
               setHandleSubmit={setHandleSubmitCustomer}
               checkedChange={selectCustomer}
             />
           )}
           <h1 className="text-2xl font-bold">اطلاعات محصول</h1>
           <div className="grid md:grid-cols-3 grid-cols-1 gap-[30px] w-full">
-          <FormField
+            <FormField
               name="document_id"
               control={factorForm.control}
               render={({ field }) => (
@@ -263,12 +269,34 @@ export function EntryFactor({
                   <FormItem className="w-full flex flex-col items-start gap-y-[3px]">
                     <span>شماره سند</span>
                     <Input
-                      value={field.value ?? ""}
+                      value={field.value ?? ''}
                       onChange={(e) => {
-                        if (e.currentTarget.value == "") {
-                          field.onChange(null);
+                        if (e.currentTarget.value == '') {
+                          field.onChange(null)
                         } else {
-                          field.onChange(e.currentTarget.value);
+                          field.onChange(e.currentTarget.value)
+                        }
+                      }}
+                    />
+                    <FormMessage />
+                  </FormItem>
+                </FormControl>
+              )}
+            />
+            <FormField
+              name="serial_number"
+              control={factorForm.control}
+              render={({ field }) => (
+                <FormControl>
+                  <FormItem className="w-full flex flex-col items-start gap-y-[3px]">
+                    <span>شماره سریال</span>
+                    <Input
+                      value={field.value ?? ''}
+                      onChange={(e) => {
+                        if (e.currentTarget.value == '') {
+                          field.onChange(null)
+                        } else {
+                          field.onChange(e.currentTarget.value)
                         }
                       }}
                     />
@@ -288,9 +316,7 @@ export function EntryFactor({
                       timePicker={false}
                       date={new Date(field.value ?? Date.now())}
                       setDate={(date) => {
-                        field.onChange(
-                          jalaaliMoment(date).format("YYYY-MM-DD")
-                        );
+                        field.onChange(jalaaliMoment(date).format('YYYY-MM-DD'))
                       }}
                     />
                     <FormMessage />
@@ -330,16 +356,16 @@ export function EntryFactor({
                   <FormItem className="w-full flex flex-col items-start gap-y-[3px]">
                     <span>مظنه (تومان)</span>
                     <Input
-                      value={field.value ?? ""}
+                      value={field.value ?? ''}
                       onChange={(e) => {
-                        if (e.currentTarget.value == "") {
-                          field.onChange(null);
+                        if (e.currentTarget.value == '') {
+                          field.onChange(null)
                         } else {
                           field.onChange(
                             !Number.isNaN(Number(e.currentTarget.value))
                               ? Number(e.currentTarget.value)
                               : e.target.value
-                          );
+                          )
                         }
                       }}
                     />
@@ -351,21 +377,46 @@ export function EntryFactor({
             <FormField
               name="weight"
               control={factorForm.control}
-              render={({ field }) => (
-                <FormControl>
-                  <FormItem className="w-full flex flex-col items-start gap-y-[3px]">
-                    <span>وزن (گرم)</span>
-                    <Input
-                      value={field.value}
-                      onChange={(e) => {
-                 
-                          field.onChange(e.currentTarget.value);
-                      }}
-                    />
-                    <FormMessage />
-                  </FormItem>
-                </FormControl>
-              )}
+              render={({ field }) => {
+                const [isFree, setIsFree] = useState(false)
+                const [value, setValue] = useState('')
+                console.log(isFree)
+                return (
+                  <FormControl>
+                    <FormItem className="w-full flex flex-col items-start gap-y-[3px]">
+                      <span>وزن (گرم)</span>
+                      <Select
+                        value={value}
+                        onValueChange={(val) => {
+                          setValue(val)
+                          field.onChange(val == 'free' ? '0' : val)
+                          val == 'free' ? setIsFree(true) : setIsFree(false)
+                        }}
+                      >
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="انتخاب" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {['50', '100', '150', '250', '500', 'free'].map((item) => (
+                            <SelectItem dir="rtl" value={item}>
+                              {digitsEnToFa(item == 'free' ? 'آزاد' : item)}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      {isFree && (
+                        <Input
+                          value={field.value}
+                          onChange={(e) => {
+                            field.onChange(e.currentTarget.value)
+                          }}
+                        />
+                      )}
+                      <FormMessage />
+                    </FormItem>
+                  </FormControl>
+                )
+              }}
             />
             <FormField
               name="weight_with_plastic"
@@ -377,9 +428,8 @@ export function EntryFactor({
                     <Input
                       value={field.value}
                       onChange={(e) => {
-                 
-                        field.onChange(e.currentTarget.value);
-                    }}
+                        field.onChange(e.currentTarget.value)
+                      }}
                     />
                     <FormMessage />
                   </FormItem>
@@ -394,12 +444,12 @@ export function EntryFactor({
                   <FormItem className="w-full flex flex-col items-start gap-y-[3px]">
                     <span>از طرف (اختیاری)</span>
                     <Input
-                      value={field.value ?? ""}
+                      value={field.value ?? ''}
                       onChange={(e) => {
-                        if (e.currentTarget.value == "") {
-                          field.onChange(null);
+                        if (e.currentTarget.value == '') {
+                          field.onChange(null)
                         } else {
-                          field.onChange(e.currentTarget.value);
+                          field.onChange(e.currentTarget.value)
                         }
                       }}
                     />
@@ -413,21 +463,21 @@ export function EntryFactor({
             <Button
               onClick={() => {
                 if (!selectCustomer) {
-                  console.log(handleSubmitCustomer);
-                  handleSubmitCustomer(5);
+                  console.log(handleSubmitCustomer)
+                  handleSubmitCustomer(5)
                 } else {
-                  console.log("This is Run");
-                  factorForm.handleSubmit(onSubmit)();
+                  console.log('This is Run')
+                  factorForm.handleSubmit(onSubmit)()
                 }
               }}
               className="rounded-full bg-persiangreen-600 hover:bg-persiangreen-700"
             >
               {id ? <Edit2 /> : <Plus />}
-              {id ? "ویرایش" : "افزودن"} فاکتور
+              {id ? 'ویرایش' : 'افزودن'} فاکتور
             </Button>
             <Button
               onClick={() => {
-                navigate(-1);
+                navigate(-1)
               }}
               className="rounded-full bg-crimson-600 hover:bg-crimson-700"
             >
@@ -438,5 +488,5 @@ export function EntryFactor({
         </form>
       </Form>
     </div>
-  );
+  )
 }

@@ -32,7 +32,7 @@ const styles = StyleSheet.create({
   page: {
     flexDirection: 'column',
     height: '100%',
-    fontSize: '6px',
+    fontSize: '8px',
     fontFamily: 'IRANSans'
   }
 })
@@ -48,17 +48,17 @@ export const FactorPDF = ({ factor, customer }: { factor: Factor; customer: Cust
           display: 'flex',
 
           alignItems: 'center',
-          rowGap: '20px',
+          rowGap: '10px',
           justifyContent: 'center'
         }}
       >
         <Image
-          style={{ width: '60px', height: '60px', objectFit: 'contain', marginTop: '-60px' }}
+          style={{ width: '120px', height: '120px', objectFit: 'contain', marginTop: '-30px' }}
           source={Logo}
         />
         <View
           style={{
-            width: '80%',
+            width: '90%',
             border: '1px black solid',
             display: 'flex',
             flexDirection: 'column'
@@ -190,7 +190,7 @@ export const FactorPDF = ({ factor, customer }: { factor: Factor; customer: Cust
           <View
             style={{
               width: '100%',
-              height: '30vh',
+              height: '45vh',
               border: '1px black solid',
               borderLeft: 'none',
               borderRight: 'none',
@@ -227,25 +227,15 @@ export const FactorPDF = ({ factor, customer }: { factor: Factor; customer: Cust
                     backgroundColor: 'black'
                   }}
                 ></View>
-              <View style={{display:"flex",flexDirection:"row",columnGap:"1px"}} >
-                  
-                  
-                  <Text >
-                  
-                  تومان
-                  
-                  
-                </Text>
-                {" "}
-                  <Text >
-                  
-                  {digitsEnToFa(
-                    Intl.NumberFormat().format(Math.ceil(factor.quote / 4.6083) * Number(factor.weight))
-                  )}
-                  
-                  
-                </Text>
-                
+                <View style={{ display: 'flex', flexDirection: 'row', columnGap: '1px' }}>
+                  <Text>تومان</Text>{' '}
+                  <Text>
+                    {digitsEnToFa(
+                      Intl.NumberFormat().format(
+                        Math.ceil(factor.quote / 4.6083) * Number(factor.weight)
+                      )
+                    )}
+                  </Text>
                 </View>
                 <View
                   style={{
@@ -275,23 +265,11 @@ export const FactorPDF = ({ factor, customer }: { factor: Factor; customer: Cust
                     backgroundColor: 'black'
                   }}
                 ></View>
-                <View style={{display:"flex",flexDirection:"row",columnGap:"1px"}} >
-                  
-                  
-                  <Text >
-                  
-                  تومان
-                  
-                  
-                </Text>
-                {" "}
-                  <Text >
-                  
-                  {digitsEnToFa(Intl.NumberFormat().format(Math.ceil(factor.quote / 4.6083)))}
-                  
-                  
-                </Text>
-                
+                <View style={{ display: 'flex', flexDirection: 'row', columnGap: '1px' }}>
+                  <Text>تومان</Text>{' '}
+                  <Text>
+                    {digitsEnToFa(Intl.NumberFormat().format(Math.ceil(factor.quote / 4.6083)))}
+                  </Text>
                 </View>
                 <View
                   style={{
@@ -350,23 +328,8 @@ export const FactorPDF = ({ factor, customer }: { factor: Factor; customer: Cust
                     backgroundColor: 'black'
                   }}
                 ></View>
-                <View style={{display:"flex",flexDirection:"row",columnGap:"1px"}} >
-                  
-                  
-                  <Text >
-                  
-                  گرم
-                  
-                  
-                </Text>
-                {" "}
-                  <Text >
-                  
-                  {digitsEnToFa(factor.weight)}
-                  
-                  
-                </Text>
-                
+                <View style={{ display: 'flex', flexDirection: 'row', columnGap: '1px' }}>
+                  <Text>گرم</Text> <Text>{digitsEnToFa(factor.weight)}</Text>
                 </View>
                 <View
                   style={{
@@ -464,7 +427,9 @@ export const FactorPDF = ({ factor, customer }: { factor: Factor; customer: Cust
                   padding: '2px'
                 }}
               >
-                <Text>جمع سند: {digitsEnToFa(Intl.NumberFormat().format(Number(factor.weight)))} گرم</Text>
+                <Text>
+                  جمع سند: {digitsEnToFa(Intl.NumberFormat().format(Number(factor.weight)))} گرم
+                </Text>
               </View>
               <View
                 style={{
@@ -478,7 +443,9 @@ export const FactorPDF = ({ factor, customer }: { factor: Factor; customer: Cust
                 <Text>
                   جمع مبلغ:{' '}
                   {digitsEnToFa(
-                    Intl.NumberFormat().format(Math.ceil(factor.quote / 4.6083) *Number(factor.weight))
+                    Intl.NumberFormat().format(
+                      Math.ceil(factor.quote / 4.6083) * Number(factor.weight)
+                    )
                   )}{' '}
                   تومان
                 </Text>
@@ -504,7 +471,9 @@ export const FactorPDF = ({ factor, customer }: { factor: Factor; customer: Cust
                   padding: '2px'
                 }}
               >
-                <Text>جمع وزن: {digitsEnToFa(Intl.NumberFormat().format(Number(factor.weight)))} گرم</Text>
+                <Text>
+                  جمع وزن: {digitsEnToFa(Intl.NumberFormat().format(Number(factor.weight)))} گرم
+                </Text>
               </View>
               <View
                 style={{
