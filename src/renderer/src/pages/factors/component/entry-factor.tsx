@@ -1,5 +1,5 @@
 import { Customer, Factor } from '@/types/factors'
-import { useForm } from 'react-hook-form'
+import { useForm, useFieldArray } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { FormControl, FormField, FormItem, FormMessage, Form } from '@/Components/Ui/form'
@@ -9,7 +9,7 @@ import { EntryCustomer } from '@/pages/customers/components/entry-customer'
 import { useCustomers } from '@/hooks/useCustomer'
 import { useEffect, useState } from 'react'
 import { Combobox } from '@/Components/Ui/combo-box'
-import { Edit2, Plus, X } from 'lucide-react'
+import { Edit2, Plus, Trash2, X } from 'lucide-react'
 import { ShowCustomer } from '@/pages/customers/components/show-customer'
 import { Input } from '@/Components/Ui/input'
 import { DatePickerDemo } from '@/Components/Ui/date-picker-jalali'
@@ -26,6 +26,28 @@ import { useNavigate } from 'react-router'
 import { useCreateFactor, useUpdateFactor } from '@/hooks/useFactor'
 import { Checkbox } from '@/Components/Ui/checkbox'
 import { digitsEnToFa } from '@persian-tools/persian-tools'
+
+const factorSchema = z.object({
+  customer_id: z.string().optional(),
+  customer_name: z.string().optional(),
+  date: z.string({ required_error: 'تاریخ الزامی است' }),
+  type_doc: z.string({ required_error: 'نوع سند اجباری است' }),
+  from: z.string().optional().nullable(),
+  document_id: z.string({ required_error: 'شماره سند اجباری است' }),
+  quote: z.number({ required_error: 'مظنه اجباری است' }),
+  products: z.array(
+    z.object({
+      serial_number: z.string({ required_error: 'شماره سریال اجباری است' }),
+      weight: z
+        .string({ required_error: 'وزن اجباری است' })
+        .refine((val) => !isNaN(Number(val)), 'لطفا عدد وارد نمایید'),
+      weight_with_plastic: z
+        .string({ required_error: 'وزن با پلاستیک اجباری است' })
+        .refine((val) => !isNaN(Number(val)), 'لطفا عدد وارد نمایید')
+    })
+  )
+})
+
 export function EntryFactor({
   id,
   factorDefaultValue
@@ -33,77 +55,55 @@ export function EntryFactor({
   id?: string
   factorDefaultValue?: Factor
 }) {
-  const [selectCustomer, setSelectCustomer] = useState(factorDefaultValue ? true : false)
+  const [selectCustomer, setSelectCustomer] = useState(!!factorDefaultValue)
   const [handleSubmitCustomer, setHandleSubmitCustomer] = useState<(val: any) => void>(() => {})
-  const factorSchema = z.object({
-    customer_id: z.string({ required_error: 'شناسه کاربری الزامی است' }),
-    date: z.string({ required_error: 'تاریخ الزامی است' }),
-    type_doc: z.string({ required_error: 'نوع سند اجباری است' }),
-    from: z.string().optional().nullable(),
-    weight: z
-      .string({
-        required_error: 'وزن اجباری است',
-        invalid_type_error: 'لطفا عدد وارد کنید'
-      })
-      .refine(
-        (value) =>
-          Number(value) || value == '0' || value.split('').filter((val) => val == '.').length == 1,
-        'لطفا عدد وارد نمایید'
-      ),
-    weight_with_plastic: z
-      .string({
-        required_error: 'وزن با پلاستیک اجباری است',
-        invalid_type_error: 'لطفا عدد وارد کنید'
-      })
-      .refine(
-        (value) =>
-          Number(value) || value == '0' || value.split('').filter((val) => val == '.').length == 1,
-        'لطفا عدد وارد نمایید'
-      ),
-    quote: z.number({
-      required_error: 'وزن اجباری است',
-      invalid_type_error: 'لطفا عدد وارد کنید'
-    }),
-    document_id: z
-      .string({
-        required_error: 'شماره سند اجباری است'
-      })
-      .min(1, 'شماره سند اجباری است'),
-    serial_number: z
-      .string({
-        required_error: 'شماره سریال اجباری است'
-      })
-      .min(1, 'شماره سریال اجباری است')
-  })
+
+  const customers = useCustomers({ filters: [] })
+  const navigate = useNavigate()
+  const { mutate: createFactor } = useCreateFactor()
+  const { mutate: updateFactor } = useUpdateFactor()
+
   const factorForm = useForm<z.infer<typeof factorSchema>>({
     resolver: zodResolver(factorSchema),
     defaultValues: {
       date: jalaaliMoment().format('YYYY-MM-DD'),
+      products: factorDefaultValue?.products ?? [
+        { serial_number: '', weight: '', weight_with_plastic: '' }
+      ],
       ...(factorDefaultValue ?? {})
     }
   })
-  const navigate = useNavigate()
-  const { mutate: createFactor } = useCreateFactor()
-  const { mutate: updateFactor } = useUpdateFactor()
-  function onSubmit(data: z.infer<typeof factorSchema>) {
-    console.log('OK')
-    if (id) {
-      updateFactor({ id: id, value: data })
+  const { fields, append, remove } = useFieldArray({
+    control: factorForm.control,
+    name: 'products'
+  })
+
+  async function onSubmit(data: z.infer<typeof factorSchema>) {
+    if (!selectCustomer) {
+      await handleSubmitCustomer?.({})
+    }
+
+    const customer_id = String(factorForm.getValues('customer_id') ?? '')
+    const nameFromForm = factorForm.getValues('customer_name')?.trim()
+
+    const customer = customers.find((c) => String(c.id) === customer_id)
+    const resolvedName = nameFromForm || customer?.full_name || 'کاربر ناشناس'
+
+    const finalData = {
+      ...data,
+      customer_id,
+      customer_name: resolvedName,
+      created_date: new Date().toISOString()
+    }
+
+    if (!id) {
+      createFactor({ value: finalData })
     } else {
-      createFactor({
-        value: { ...data }
-      })
+      updateFactor({ id, value: finalData })
     }
-    navigate(-1)
+
+    navigate('/factors')
   }
-  const customer_id_ca = factorForm.watch('customer_id')
-  useEffect(() => {
-    console.log(factorForm.getValues('customer_id'))
-    if (factorForm.getValues('customer_id') && !selectCustomer) {
-      factorForm.handleSubmit(onSubmit)()
-    }
-  }, [customer_id_ca])
-  console.log(factorForm.formState.errors)
 
   return (
     <div className="w-full flex flex-col items-start gap-y-[10px] ">
@@ -112,6 +112,7 @@ export function EntryFactor({
           className="w-full flex flex-col gap-y-[20px]"
           onSubmit={factorForm.handleSubmit(onSubmit)}
         >
+          {/*  اطلاعات خریدار */}
           <h1 className="text-2xl font-bold">اطلاعات خریدار</h1>
           <div className="flex items-center gap-x-[5px]">
             <Checkbox
@@ -121,14 +122,13 @@ export function EntryFactor({
             />
             <label htmlFor="terms2">انتخاب از بین خریداران سابق</label>
           </div>
-          {selectCustomer && (
+
+          {selectCustomer ? (
             <FormField
               name="customer_id"
               control={factorForm.control}
-              render={function FieldComponent({ field }) {
-                const customers = useCustomers({
-                  filters: []
-                })
+              render={({ field }) => {
+                const customers = useCustomers({ filters: [] })
                 const [data, setData] = useState<Customer | null>(
                   customers.find((i) => i.id == field.value) ?? null
                 )
@@ -136,23 +136,27 @@ export function EntryFactor({
                 useEffect(() => {
                   setData(customers.find((i) => i.id == field.value) ?? null)
                 }, [updateEdit])
+
                 const [editOpen, setEditOpen] = useState(false)
+
                 useEffect(() => {
-                  field.onChange(data?.id)
+                  if (data?.id) {
+                    factorForm.setValue('customer_id', String(data.id))
+                    field.onChange(String(data.id))
+                  }
                 }, [data])
+
                 return (
                   <FormControl>
                     <FormItem className="w-full flex flex-col ga-y-[2px]">
-                      <span>خریداران قبلی : </span>
+                      <span>خریداران قبلی :</span>
                       <div className="flex flex-row gap-x-[10px] items-center">
                         <Combobox
                           data={data}
                           list={customers}
                           triggerKey="full_name"
                           placeholder="انتخاب مشتری"
-                          setData={(val) => {
-                            setData(val as Customer)
-                          }}
+                          setData={(val) => setData(val as Customer)}
                         />
                         <Dialog open={editOpen} onOpenChange={setEditOpen}>
                           <DialogTrigger asChild>
@@ -165,171 +169,72 @@ export function EntryFactor({
                               customerDefaultValue={data ?? undefined}
                               id={data?.id}
                               setIsOpen={setEditOpen}
-                              setCustomerId={() => {
-                                setUpdateEdit(updateEdit + 1)
-                              }}
+                              setCustomerId={() => setUpdateEdit(updateEdit + 1)}
                             />
                           </DialogContent>
                         </Dialog>
                       </div>
                       {data && <ShowCustomer data={data} />}
-                      {/* <Dialog>
-                      <DialogTrigger asChild>
-                        <Button variant={"outline"} className="w-full">
-                          {customerDefault
-                            ? customerDefault.full_name
-                            : "انتخاب مشتری"}
-                        </Button>
-                      </DialogTrigger>
-                      <DialogContent className="pt-[50px]">
-                        <div className="flex flex-row gap-x-[5px]">
-                          <Combobox
-                            componentList={
-                              <Dialog open={addOpen} onOpenChange={setAddOpen}>
-                                <DialogTrigger asChild>
-                                  <div className="w-full flex flex-row text-sm hover:bg-accent transition-all cursor-pointer items-center px-2 py-1.5 gap-2">
-                                    <Plus className="w-4 h-4 ml-2 mr-1 " />
-                                    افزودن مشتری جدید
-                                  </div>
-                                </DialogTrigger>
-                                <DialogContent className="pt-[40px] max-h-[90vh] overflow-auto">
-                                  <EntryCustomer setIsOpen={setAddOpen} />
-                                </DialogContent>
-                              </Dialog>
-                            }
-                            data={data}
-                            list={customers}
-                            triggerKey="full_name"
-                            placeholder="انتخاب مشتری"
-                            setData={(val) => {
-                              setData(val as Customer);
-                            }}
-                          />
-                          <Dialog open={editOpen} onOpenChange={setEditOpen}>
-                            <DialogTrigger asChild>
-                              <Button
-                                disabled={!Boolean(data)}
-                                className="rounded-full"
-                              >
-                                ویرایش
-                              </Button>
-                            </DialogTrigger>
-                            <DialogContent className="pt-[40px] max-h-[90vh] overflow-auto">
-                              <EntryCustomer
-                                customerDefaultValue={data ?? undefined}
-                                id={data?.id}
-                                setIsOpen={setEditOpen}
-                              />
-                            </DialogContent>
-                          </Dialog>
-                          <Button
-                            disabled={!Boolean(data)}
-                            className="bg-crimson-500 hover:bg-crimson-600 rounded-full"
-                            onClick={() => setData(null)}
-                          >
-                            لغو انتخاب
-                          </Button>
-                        </div>
-                        {data && <ShowCustomer data={data} />}
-                        <DialogClose>
-                          <Button
-                            disabled={!Boolean(data)}
-                            onClick={() => {
-                              field.onChange(data?.id);
-                            }}
-                            className="w-full bg-persiangreen-600 hover:bg-persiangreen-700"
-                          >
-                            <Check />
-                            تایید
-                          </Button>
-                        </DialogClose>
-                      </DialogContent>
-                    </Dialog> */}
                       <FormMessage />
                     </FormItem>
                   </FormControl>
                 )
               }}
             />
-          )}
-          {!selectCustomer && (
+          ) : (
             <EntryCustomer
-              setCustomerId={(id) => factorForm.setValue('customer_id', id as string)}
+              setCustomerId={(id) => {
+                factorForm.setValue('customer_id', id as string)
+              }}
+              setCustomerName={(name) => {
+                factorForm.setValue('customer_name', name)
+              }}
               setHandleSubmit={setHandleSubmitCustomer}
               checkedChange={selectCustomer}
             />
           )}
-          <h1 className="text-2xl font-bold">اطلاعات محصول</h1>
+
+          {/* اطلاعات فاکتور */}
+          <h1 className="text-2xl font-bold">اطلاعات فاکتور</h1>
           <div className="grid md:grid-cols-3 grid-cols-1 gap-[30px] w-full">
             <FormField
               name="document_id"
               control={factorForm.control}
               render={({ field }) => (
                 <FormControl>
-                  <FormItem className="w-full flex flex-col items-start gap-y-[3px]">
+                  <FormItem>
                     <span>شماره سند</span>
-                    <Input
-                      value={field.value ?? ''}
-                      onChange={(e) => {
-                        if (e.currentTarget.value == '') {
-                          field.onChange(null)
-                        } else {
-                          field.onChange(e.currentTarget.value)
-                        }
-                      }}
-                    />
+                    <Input {...field} />
                     <FormMessage />
                   </FormItem>
                 </FormControl>
               )}
             />
-            <FormField
-              name="serial_number"
-              control={factorForm.control}
-              render={({ field }) => (
-                <FormControl>
-                  <FormItem className="w-full flex flex-col items-start gap-y-[3px]">
-                    <span>شماره سریال</span>
-                    <Input
-                      value={field.value ?? ''}
-                      onChange={(e) => {
-                        if (e.currentTarget.value == '') {
-                          field.onChange(null)
-                        } else {
-                          field.onChange(e.currentTarget.value)
-                        }
-                      }}
-                    />
-                    <FormMessage />
-                  </FormItem>
-                </FormControl>
-              )}
-            />
+
             <FormField
               name="date"
               control={factorForm.control}
               render={({ field }) => (
                 <FormControl>
-                  <FormItem className="w-full flex flex-col items-start gap-y-[3px]">
+                  <FormItem>
                     <span>تاریخ</span>
                     <DatePickerDemo
                       timePicker={false}
                       date={new Date(field.value ?? Date.now())}
-                      setDate={(date) => {
-                        field.onChange(jalaaliMoment(date).format('YYYY-MM-DD'))
-                      }}
+                      setDate={(date) => field.onChange(jalaaliMoment(date).format('YYYY-MM-DD'))}
                     />
                     <FormMessage />
                   </FormItem>
                 </FormControl>
               )}
             />
+
             <FormField
               name="type_doc"
               control={factorForm.control}
               render={({ field }) => (
                 <FormControl>
-                  <FormItem className="w-full flex flex-col items-start gap-y-[3px]">
+                  <FormItem>
                     <span>نوع سند</span>
                     <Select value={field.value} onValueChange={field.onChange}>
                       <SelectTrigger className="w-full">
@@ -337,7 +242,7 @@ export function EntryFactor({
                       </SelectTrigger>
                       <SelectContent>
                         {Object.keys(type_docs).map((item) => (
-                          <SelectItem dir="rtl" value={item}>
+                          <SelectItem key={item} value={item}>
                             {type_docs[item]}
                           </SelectItem>
                         ))}
@@ -348,25 +253,19 @@ export function EntryFactor({
                 </FormControl>
               )}
             />
+
             <FormField
               name="quote"
               control={factorForm.control}
               render={({ field }) => (
                 <FormControl>
-                  <FormItem className="w-full flex flex-col items-start gap-y-[3px]">
+                  <FormItem>
                     <span>مظنه (تومان)</span>
                     <Input
                       value={field.value ?? ''}
                       onChange={(e) => {
-                        if (e.currentTarget.value == '') {
-                          field.onChange(null)
-                        } else {
-                          field.onChange(
-                            !Number.isNaN(Number(e.currentTarget.value))
-                              ? Number(e.currentTarget.value)
-                              : e.target.value
-                          )
-                        }
+                        const val = e.currentTarget.value
+                        field.onChange(val === '' ? undefined : Number(val))
                       }}
                     />
                     <FormMessage />
@@ -374,84 +273,18 @@ export function EntryFactor({
                 </FormControl>
               )}
             />
-            <FormField
-              name="weight"
-              control={factorForm.control}
-              render={({ field }) => {
-                const [isFree, setIsFree] = useState(false)
-                const [value, setValue] = useState('')
-                console.log(isFree)
-                return (
-                  <FormControl>
-                    <FormItem className="w-full flex flex-col items-start gap-y-[3px]">
-                      <span>وزن (گرم)</span>
-                      <Select
-                        value={value}
-                        onValueChange={(val) => {
-                          setValue(val)
-                          field.onChange(val == 'free' ? '0' : val)
-                          val == 'free' ? setIsFree(true) : setIsFree(false)
-                        }}
-                      >
-                        <SelectTrigger className="w-full">
-                          <SelectValue placeholder="انتخاب" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {['50', '100', '150', '250', '500', 'free'].map((item) => (
-                            <SelectItem dir="rtl" value={item}>
-                              {digitsEnToFa(item == 'free' ? 'آزاد' : item)}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      {isFree && (
-                        <Input
-                          value={field.value}
-                          onChange={(e) => {
-                            field.onChange(e.currentTarget.value)
-                          }}
-                        />
-                      )}
-                      <FormMessage />
-                    </FormItem>
-                  </FormControl>
-                )
-              }}
-            />
-            <FormField
-              name="weight_with_plastic"
-              control={factorForm.control}
-              render={({ field }) => (
-                <FormControl>
-                  <FormItem className="w-full flex flex-col items-start gap-y-[3px]">
-                    <span>وزن با پلاستیک (گرم)</span>
-                    <Input
-                      value={field.value}
-                      onChange={(e) => {
-                        field.onChange(e.currentTarget.value)
-                      }}
-                    />
-                    <FormMessage />
-                  </FormItem>
-                </FormControl>
-              )}
-            />
+
             <FormField
               name="from"
               control={factorForm.control}
               render={({ field }) => (
                 <FormControl>
-                  <FormItem className="w-full flex flex-col items-start gap-y-[3px]">
+                  <FormItem>
                     <span>از طرف (اختیاری)</span>
                     <Input
+                      {...field}
                       value={field.value ?? ''}
-                      onChange={(e) => {
-                        if (e.currentTarget.value == '') {
-                          field.onChange(null)
-                        } else {
-                          field.onChange(e.currentTarget.value)
-                        }
-                      }}
+                      onChange={(e) => field.onChange(e.target.value)}
                     />
                     <FormMessage />
                   </FormItem>
@@ -459,30 +292,122 @@ export function EntryFactor({
               )}
             />
           </div>
+
+          <h1 className="text-2xl font-bold">محصولات</h1>
+          {fields.map((field, index) => (
+            <div key={field.id} className="border p-4 rounded-md mb-4">
+              <div className="grid md:grid-cols-3 grid-cols-1 gap-[30px]">
+                <FormField
+                  name={`products.${index}.serial_number`}
+                  control={factorForm.control}
+                  render={({ field }) => (
+                    <FormControl>
+                      <FormItem>
+                        <span>شماره سریال</span>
+                        <Input {...field} />
+                        <FormMessage />
+                      </FormItem>
+                    </FormControl>
+                  )}
+                />
+                <FormField
+                  name={`products.${index}.weight`}
+                  control={factorForm.control}
+                  render={({ field }) => {
+                    const options = ['50', '100', '150', '250', '500']
+                    const current = String(field.value ?? '')
+                    const selectValue = options.includes(current) ? current : 'free'
+                    const isFree = selectValue === 'free'
+
+                    return (
+                      <FormControl>
+                        <FormItem className="w-full flex flex-col items-start gap-y-[3px]">
+                          <span>وزن (گرم)</span>
+
+                          <Select
+                            value={selectValue}
+                            onValueChange={(val) => {
+                              if (val === 'free') {
+                                field.onChange('')
+                              } else {
+                                field.onChange(val)
+                              }
+                            }}
+                          >
+                            <SelectTrigger className="w-full">
+                              <SelectValue placeholder="انتخاب" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {[...options, 'free'].map((item) => (
+                                <SelectItem key={item} dir="rtl" value={item}>
+                                  {digitsEnToFa(item === 'free' ? 'آزاد' : item)}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+
+                          {isFree && (
+                            <Input
+                              className="mt-2"
+                              value={field.value ?? ''}
+                              onChange={(e) => field.onChange(e.currentTarget.value)}
+                              placeholder="وزن دلخواه را وارد کنید"
+                            />
+                          )}
+
+                          <FormMessage />
+                        </FormItem>
+                      </FormControl>
+                    )
+                  }}
+                />
+
+                <FormField
+                  name={`products.${index}.weight_with_plastic`}
+                  control={factorForm.control}
+                  render={({ field }) => (
+                    <FormControl>
+                      <FormItem>
+                        <span>وزن با پلاستیک (گرم)</span>
+                        <Input {...field} />
+                        <FormMessage />
+                      </FormItem>
+                    </FormControl>
+                  )}
+                />
+              </div>
+              <Button
+                type="button"
+                variant="destructive"
+                onClick={() => remove(index)}
+                className="mt-2"
+              >
+                <Trash2 className="w-4 h-4 mr-2" /> حذف محصول
+              </Button>
+            </div>
+          ))}
+
+          <Button
+            type="button"
+            onClick={() => append({ serial_number: '', weight: '', weight_with_plastic: '' })}
+            className="rounded-full bg-blue-500 hover:bg-blue-600"
+          >
+            + افزودن محصول
+          </Button>
+
           <div className="w-full flex gap-x-[10px]">
             <Button
-              onClick={() => {
-                if (!selectCustomer) {
-                  console.log(handleSubmitCustomer)
-                  handleSubmitCustomer(5)
-                } else {
-                  console.log('This is Run')
-                  factorForm.handleSubmit(onSubmit)()
-                }
-              }}
+              type="submit"
               className="rounded-full bg-persiangreen-600 hover:bg-persiangreen-700"
             >
-              {id ? <Edit2 /> : <Plus />}
-              {id ? 'ویرایش' : 'افزودن'} فاکتور
+              {id ? <Edit2 /> : <Plus />} {id ? 'ویرایش' : 'افزودن'} فاکتور
             </Button>
             <Button
-              onClick={() => {
-                navigate(-1)
-              }}
+              type="button"
+              onClick={() => navigate(-1)}
               className="rounded-full bg-crimson-600 hover:bg-crimson-700"
             >
-              <X />
-              انصراف
+              <X /> انصراف
             </Button>
           </div>
         </form>

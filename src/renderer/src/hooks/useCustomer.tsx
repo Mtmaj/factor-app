@@ -31,17 +31,17 @@ export function useCustomer(id: string) {
 export function useCreateCustomer() {
   const [data, setData] = useAtom(customerAtom)
   return {
-    mutate: function mutate({ value }: { value: any }) {
-      value.created_date = new Date(Date.now()).toISOString()
-      value.id = data.length != 0 ? (Number(data[data.length - 1].id) + 1).toString() : '1'
+    mutate: ({ value }: { value: any }) => {
+      value.created_date = new Date().toISOString()
+      value.id = data.length ? (Number(data[data.length - 1].id) + 1).toString() : '1'
       value.is_deleted = false
       setData([...data, value])
-      return {
-        value
-      }
+      return { value }    
     }
   }
 }
+
+
 
 export function useUpdateCustomer() {
   const [data, setData] = useAtom(customerAtom)

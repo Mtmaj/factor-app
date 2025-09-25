@@ -15,6 +15,7 @@ export function EntryCustomer({
   setIsOpen,
   setHandleSubmit,
   setCustomerId,
+  setCustomerName,
   checkedChange
 }: {
   id?: string
@@ -22,6 +23,7 @@ export function EntryCustomer({
   setIsOpen?: (val: boolean) => void
   setHandleSubmit?: (val: any) => void
   setCustomerId?: (val: any) => void
+  setCustomerName?: (val: string) => void
   checkedChange?: boolean
   handleFactorSubmit?: () => void
 }) {
@@ -52,24 +54,28 @@ export function EntryCustomer({
   useEffect(() => {
     console.log('OK')
     setHandleSubmit?.(() => {
-      return () => customerForm.handleSubmit(onSubmit)()
+      return async () => {
+        return await customerForm.handleSubmit(onSubmit)()
+      }
     })
+
     console.log(() => {
       customerForm.handleSubmit(onSubmit)()
     })
   }, [checkedChange ?? false])
   const { mutate: createCustomer } = useCreateCustomer()
   const { mutate: updateCustomer } = useUpdateCustomer()
+
   function onSubmit(data: z.infer<typeof customerSchema>) {
     let value: any = null
     if (id) {
       value = updateCustomer({ id: id, value: data })
     } else {
-      value = createCustomer({
-        value: { ...data }
-      })
+      value = createCustomer({ value: { ...data } })
     }
+
     setCustomerId?.(value.value.id)
+    setCustomerName?.(data.full_name)
     setIsOpen?.(false)
   }
 
