@@ -34,7 +34,7 @@ export default function ShowFactorPage() {
     )
   }
 
-  const pricePerGram = Math.ceil(Number(factor.quote) / 4.6083)
+  const pricePerGram = Math.ceil(Number(factor.quote) / 4.608)
   const totalWeight = (factor.products ?? []).reduce((s, p) => s + Number(p.weight || 0), 0)
   const totalWeightWithPlastic = (factor.products ?? []).reduce(
     (s, p) => s + Number(p.weight_with_plastic || 0),
