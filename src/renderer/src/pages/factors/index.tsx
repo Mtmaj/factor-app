@@ -15,7 +15,7 @@ import { Edit2, Eye, FilterIcon, MoreHorizontal, Plus, Trash2 } from 'lucide-rea
 
 import { CellContext, ColumnDef } from '@tanstack/react-table'
 import { DataTable } from '@/Components/Ui/data-table'
-import { useState } from 'react'
+import { memo, useState } from 'react'
 import { useDeleteFactor, useFactors } from '@/hooks/useFactor'
 import { Factor } from '@/types/factors'
 import { useCustomers } from '@/hooks/useCustomer'
@@ -28,10 +28,81 @@ import { Link } from 'react-router'
 import { Dialog, DialogContent } from '@/Components/Ui/dialog'
 
 function ToPersianNumber<type>({ cell }: CellContext<type, unknown>) {
-  const value = cell.getValue()
-  if (value === null || value === undefined) return <span>-</span>
-  return <div className="w-full flex flex-row items-center">{digitsEnToFa(String(value))}</div>
+  const raw = cell.getValue()
+  const value = raw === null || raw === undefined ? '-' : String(raw)
+  return <div className="w-full flex flex-row items-center">{digitsEnToFa(value)}</div>
 }
+
+/** اکشن‌ها را به یک کامپوننت مستقل تبدیل کردیم تا استفاده از هوک‌ها مجاز باشد */
+const ActionCell = memo(function ActionCell({
+  id,
+  displayId
+}: {
+  id: string
+  displayId: string | number
+}) {
+  const [open, onOpenChange] = useState(false)
+  const { mutate: deleteFactor } = useDeleteFactor()
+
+  return (
+    <>
+      <Dialog onOpenChange={onOpenChange} open={open}>
+        <DialogContent className="pt-[45px] flex flex-col gap-y-[20px]">
+          <h1 className="font-semibold text-[17px]">
+            آیا از حدف فاکتور با شناسه {digitsEnToFa(String(displayId))} مطمئن هستید؟
+          </h1>
+          <div className="flex flex-row gap-x-[10px]">
+            <Button
+              onClick={() => {
+                deleteFactor({ id })
+                onOpenChange(false)
+              }}
+              className="rounded-full bg-crimson-500 hover:bg-crimson-600"
+            >
+              بله. حذف شود
+            </Button>
+            <Button onClick={() => onOpenChange(false)} className="rounded-full">
+              خیر. منصرف شدم
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <DropdownMenu dir="rtl">
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" className="h-8 w-8 p-0">
+            <span className="sr-only">Open menu</span>
+            <MoreHorizontal className="h-4 w-4" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="start" className="items-start">
+          <DropdownMenuLabel>تنظیمات فاکتور</DropdownMenuLabel>
+          <DropdownMenuItem onClick={() => navigator.clipboard.writeText(id)}>
+            کپی کردن شناسه
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <Link to={`/factors/${id}`}>
+            <DropdownMenuItem>
+              <Eye /> مشاهده
+            </DropdownMenuItem>
+          </Link>
+          <Link to={`/factors/${id}/edit`}>
+            <DropdownMenuItem>
+              <Edit2 /> ویرایش
+            </DropdownMenuItem>
+          </Link>
+
+          <DropdownMenuItem
+            onClick={() => onOpenChange(true)}
+            className="bg-red-50 text-red-500 hover:!bg-red-100 hover:!text-red-600"
+          >
+            <Trash2 /> حذف
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </>
+  )
+})
 
 export const columns: ColumnDef<Factor>[] = [
   {
@@ -39,7 +110,6 @@ export const columns: ColumnDef<Factor>[] = [
     header: 'شناسه فاکتور',
     cell: ToPersianNumber<Factor>
   },
-
   {
     accessorKey: 'customer_name',
     header: 'نام کاربر',
@@ -54,7 +124,8 @@ export const columns: ColumnDef<Factor>[] = [
     header: 'تاریخ',
     cell: ({ row }) => {
       const date = row.original.date
-      return <div>{digitsEnToFa(jalaaliMoment(date, 'YYYY-MM-DD').format('jYYYY/jMM/jDD'))}</div>
+      const m = jalaaliMoment(date, 'YYYY-MM-DD', true)
+      return <div>{m.isValid() ? digitsEnToFa(m.format('jYYYY/jMM/jDD')) : '-'}</div>
     }
   },
   {
@@ -62,75 +133,16 @@ export const columns: ColumnDef<Factor>[] = [
     header: 'وزن کل (گرم)',
     cell: ({ row }) => {
       const products = row.original.products || []
-      const total = products.reduce((sum, p) => sum + Number(p.weight || 0), 0)
+      const total = products.reduce((sum: number, p: any) => sum + Number(p?.weight || 0), 0)
       return digitsEnToFa(String(total))
     }
   },
   {
     enableSorting: false,
     id: 'actions',
-    cell: ({ row }) => {
-      const id = row.original.id
-      const [open, onOpenChange] = useState(false)
-      const { mutate: deleteFactor } = useDeleteFactor()
-      return (
-        <>
-          <Dialog onOpenChange={onOpenChange} open={open}>
-            <DialogContent className="pt-[45px] flex flex-col gap-y-[20px]">
-              <h1 className="font-semibold text-[17px]">
-                آیا از حدف فاکتور با شناسه {digitsEnToFa(row.original.id)} مطمئن هستید؟
-              </h1>
-              <div className="flex flex-row gap-x-[10px]">
-                <Button
-                  onClick={() => {
-                    deleteFactor({ id: id })
-                    onOpenChange(false)
-                  }}
-                  className="rounded-full bg-crimson-500 hover:bg-crimson-600"
-                >
-                  بله. حذف شود
-                </Button>
-                <Button onClick={() => onOpenChange(false)} className="rounded-full">
-                  خیر. منصرف شدم
-                </Button>
-              </div>
-            </DialogContent>
-          </Dialog>
-          <DropdownMenu dir="rtl">
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-8 w-8 p-0">
-                <span className="sr-only">Open menu</span>
-                <MoreHorizontal className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className="items-start">
-              <DropdownMenuLabel>تنظیمات فاکتور</DropdownMenuLabel>
-              <DropdownMenuItem onClick={() => navigator.clipboard.writeText(id)}>
-                کپی کردن شناسه
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <Link to={`/factors/${id}`}>
-                <DropdownMenuItem>
-                  <Eye /> مشاهده
-                </DropdownMenuItem>
-              </Link>
-              <Link to={`/factors/${id}/edit`}>
-                <DropdownMenuItem>
-                  <Edit2 /> ویرایش
-                </DropdownMenuItem>
-              </Link>
-
-              <DropdownMenuItem
-                onClick={() => onOpenChange(true)}
-                className="bg-red-50 text-red-500 hover:!bg-red-100 hover:!text-red-600"
-              >
-                <Trash2 /> حذف
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </>
-      )
-    }
+    cell: ({ row }) => (
+      <ActionCell id={String(row.original.id)} displayId={row.original.id} />
+    )
   }
 ]
 
@@ -138,24 +150,20 @@ export default function FactorPage() {
   const [isHighFilter, setIsHighFilter] = useState(false)
   const [fullNameInput, setFullNameInput] = useState('')
   const [filters, setFilters] = useState<FilterType[]>([
-    {
-      field: 'id',
-      value: ''
-    },
+    { field: 'id', value: '' },
     { field: 'date', value: '' },
     { field: 'customer_id', value: '' }
   ])
 
-  const factors = useFactors({ filters: filters })
-  const customers = useCustomers({ filters: [] })
+  const factors = useFactors({ filters }) ?? []
+  const customers = useCustomers({ filters: [] }) ?? []
 
-  const factorsWithCustomerName: Factor[] = (factors ?? []).map((f) => {
-    if (f.customer_name && f.customer_name.trim() !== '') return f
-    const customer = customers.find((c) => String(c.id) === String(f.customer_id))
+  const factorsWithCustomerName: Factor[] = (factors ?? []).map((f: any) => {
+    if (f?.customer_name && String(f.customer_name).trim() !== '') return f
+    const customer = customers.find((c: any) => String(c?.id) === String(f?.customer_id))
     return { ...f, customer_name: customer?.full_name || 'کاربر ناشناس' }
   })
 
-  console.log(filters)
   return (
     <div className="w-full flex flex-col items-start gap-y-[20px]">
       <div className="w-full flex flex-row justify-between items-center">
@@ -170,14 +178,11 @@ export default function FactorPage() {
         <div className="flex flex-row gap-x-[10px] items-center">
           <Input
             onChange={(e) =>
-              setFilters((prev) => [
-                ...prev.map((item) => {
-                  if (item.field == 'id') {
-                    item.value = e.currentTarget.value
-                  }
-                  return item
-                })
-              ])
+              setFilters((prev) =>
+                prev.map((item) =>
+                  item.field === 'id' ? { ...item, value: e.currentTarget.value } : item
+                )
+              )
             }
             placeholder="جست و جو  با شناسه..."
             className="rounded-full"
@@ -186,7 +191,7 @@ export default function FactorPage() {
             <Tooltip>
               <TooltipTrigger>
                 <FilterIcon
-                  onClick={() => setIsHighFilter(!isHighFilter)}
+                  onClick={() => setIsHighFilter((s) => !s)}
                   className={`${
                     isHighFilter ? 'bg-crimson-500 text-white' : 'text-crimson-500'
                   } transition-all rounded-full p-[10px]`}
@@ -204,47 +209,45 @@ export default function FactorPage() {
           </Link>
         </div>
       </div>
+
       {isHighFilter && (
-        <div className="w-full flex flew-wrap items-center gap-[15px]">
+        <div className="w-full flex flex-wrap items-center gap-[15px]">
           <div className="flex flex-col relative items-start gap-y-[2px]">
             <span className="text-[15px]">نام کاربر</span>
             <div className="w-full relative group">
               <Input
-                className=""
                 onChange={(e) => {
-                  setFullNameInput(e.currentTarget.value)
-                  if (e.currentTarget.value == '') {
-                    setFilters((prev) => [
-                      ...prev.map((item) => {
-                        if (item.field == 'customer_id') {
-                          item.value = ''
-                        }
-                        return item
-                      })
-                    ])
+                  const v = e.currentTarget.value
+                  setFullNameInput(v)
+                  if (v === '') {
+                    setFilters((prev) =>
+                      prev.map((item) =>
+                        item.field === 'customer_id' ? { ...item, value: '' } : item
+                      )
+                    )
                   }
                 }}
                 value={fullNameInput}
               />
               <div className="absolute group-focus-within:visible hover:visible invisible z-[20] mt-[10px] rounded w-full border bg-white flex-col items-start">
-                {customers.length == 0 ? (
+                {customers.length === 0 ? (
                   <div className="w-full py-[20px] flex flex-col items-center justify-center">
                     <span>موردی یافت نشد.</span>
                   </div>
                 ) : (
-                  customers.map((customer) => {
+                  customers.map((customer: any) => {
                     return (
                       <div
+                        key={customer.id}
                         onClickCapture={() => {
                           setFullNameInput(customer.full_name)
-                          setFilters((prev) => [
-                            ...prev.map((item) => {
-                              if (item.field == 'customer_id') {
-                                item.value = customer.id
-                              }
-                              return item
-                            })
-                          ])
+                          setFilters((prev) =>
+                            prev.map((item) =>
+                              item.field === 'customer_id'
+                                ? { ...item, value: customer.id }
+                                : item
+                            )
+                          )
                         }}
                         className="w-full cursor-pointer hover:bg-gray-50 px-[10px] py-[5px] flex flex-row justify-start"
                       >
@@ -256,14 +259,11 @@ export default function FactorPage() {
                 <div
                   onClick={() => {
                     setFullNameInput('')
-                    setFilters((prev) => [
-                      ...prev.map((item) => {
-                        if (item.field == 'customer_id') {
-                          item.value = ''
-                        }
-                        return item
-                      })
-                    ])
+                    setFilters((prev) =>
+                      prev.map((item) =>
+                        item.field === 'customer_id' ? { ...item, value: '' } : item
+                      )
+                    )
                   }}
                   className="w-full cursor-pointer hover:bg-gray-50 px-[10px] py-[5px] flex flex-row justify-start"
                 >
@@ -272,39 +272,32 @@ export default function FactorPage() {
               </div>
             </div>
           </div>
+
           <div className="flex flex-col items-start gap-y-[2px]">
             <span className="text-[15px]">تاریخ فاکتور</span>
             <div className="w-full flex flex-row gap-x-[5px] items-center">
               <DatePickerDemo
                 timePicker={false}
                 date={moment(
-                  filters.find((i) => i.field == 'date')?.value != ''
-                    ? filters.find((i) => i.field == 'date')?.value
-                    : Date.now()
+                  (filters.find((i) => i.field === 'date')?.value as string) || Date.now()
                 ).toDate()}
                 setDate={(date) =>
-                  setFilters((prev) => [
-                    ...prev.map((i) => {
-                      if (i.field == 'date') {
-                        i.value = jalaaliMoment(date).format('YYYY-MM-DD')
-                      }
-                      return i
-                    })
-                  ])
+                  setFilters((prev) =>
+                    prev.map((i) =>
+                      i.field === 'date'
+                        ? { ...i, value: jalaaliMoment(date).format('YYYY-MM-DD') }
+                        : i
+                    )
+                  )
                 }
               />
-              {filters.find((i) => i.field == 'date')?.value != '' && (
+              {filters.find((i) => i.field === 'date')?.value !== '' && (
                 <Button
                   variant={'outline'}
                   onClick={() =>
-                    setFilters((prev) => [
-                      ...prev.map((i) => {
-                        if (i.field == 'date') {
-                          i.value = ''
-                        }
-                        return i
-                      })
-                    ])
+                    setFilters((prev) =>
+                      prev.map((i) => (i.field === 'date' ? { ...i, value: '' } : i))
+                    )
                   }
                 >
                   حذف تاریخ
@@ -314,6 +307,7 @@ export default function FactorPage() {
           </div>
         </div>
       )}
+
       <DataTable<Factor, unknown> columns={columns} data={factorsWithCustomerName ?? []} />
     </div>
   )

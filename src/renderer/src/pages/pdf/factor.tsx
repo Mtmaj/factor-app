@@ -50,7 +50,7 @@ const styles = StyleSheet.create({
 
 export const FactorPDF = ({ factor, customer }: { factor: Factor; customer: Customer }) => {
   const products = factor.products ?? []
-  const pricePerGram = Math.ceil(Number(factor.quote) / 4.6083)
+  const pricePerGram = Math.ceil(Number(factor.quote) / 4.608)
   const totalWeightWithPlastic = products.reduce(
     (sum, p) => sum + (Number(p.weight_with_plastic) || 0),
     0
